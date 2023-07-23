@@ -1,5 +1,6 @@
 {
     "port": "/dev/tty.usbmodem1401",
     "board": "arduino:avr:uno",
-    "programmer": "avrisp"
+    "programmer": "avrisp",
+    "sketch": "v0.0.1/openltc/openltc.ino"
 }
