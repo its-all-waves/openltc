@@ -1,0 +1,9 @@
+{
+    "C_Cpp.intelliSenseEngine": "Tag Parser",
+    // "[cpp]": {
+    //     "editor.wordBasedSuggestions": false,
+    //     "editor.suggest.insertMode": "replace",
+    //     "editor.semanticHighlighting.enabled": true,
+    //     "editor.quickSuggestions": true
+    // }
+}
