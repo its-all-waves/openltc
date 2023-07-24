@@ -49,12 +49,12 @@ void setLevel(void)
 {
     switch (bitCount) {
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    frame number ones place (0-9) - 4 bits   
+    frame number ones place (0-9) - 4 bits
         e.g. frame number 24
             0   1   2   3   <-- `bitCount` or bit # of ltc schema
             0   0   1   0   <-- 4 = frame number *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
-    */  
+    */
     case 0:
         polarBit = 0;
         currentBit = ((frameCount % 10) >> (1 - 1)) & 1;
@@ -89,7 +89,7 @@ void setLevel(void)
             8   9   <-- `bitCount` or bit # of ltc schema
             0   1   <-- 20 = frame number *tens place* (value at corresponding bit #)
             10  20  <-- weight  of the corresponding value
-    */  
+    */
     case 8:
         currentBit = (((frameCount / 10 % 10) >> (1 - 1)) & 1);
         update_OCR2B();
@@ -118,12 +118,12 @@ void setLevel(void)
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    seconds ones place (0-9) - 4 bits    
+    seconds ones place (0-9) - 4 bits
         e.g. second 36
             16  17  18  19  <-- `bitCount` or bit # of ltc schema
             0   1   1   0   <-- 6 = seconds *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
-    */  
+    */
     case 16:
         currentBit = (secondCount % 10 >> (1 - 1)) & 1;
         update_OCR2B();
@@ -145,19 +145,19 @@ void setLevel(void)
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    user bits field 3 - 4 bits */ 
+    user bits field 3 - 4 bits */
     case 20 ... 23:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    seconds tens place (0-9) - 3 bits    
+    seconds tens place (0-9) - 3 bits
         e.g. second 36
             24  25  26  <-- `bitCount` or bit # of ltc schema
             1   1   0   <-- 30 = seconds *tens place* (value at corresponding bit #)
             10  20  40  <-- weight of the corresponding value
-    */      
+    */
     case 24:
         currentBit = ((secondCount / 10 % 10) >> (1 - 1)) & 1;
         update_OCR2B();
@@ -181,19 +181,19 @@ void setLevel(void)
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    user bits field 4 - 4 bits */  
+    user bits field 4 - 4 bits */
     case 28 ... 31:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    minutes ones place (0-9) - 4 bits    
-        e.g. minute 59 
+    minutes ones place (0-9) - 4 bits
+        e.g. minute 59
             32  33  34  35  <-- `bitCount` or bit # of ltc schema
             1   0   0   1   <-- 9 = minutes *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
-    */  
+    */
     case 32:
         currentBit = ((minuteCount % 10) >> (1 - 1)) & 1;
         update_OCR2B();
@@ -215,19 +215,19 @@ void setLevel(void)
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    user bits field 5 - 4 bits */ 
+    user bits field 5 - 4 bits */
     case 36 ... 39:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    minutes tens place (0-9) - 3 bits    
+    minutes tens place (0-9) - 3 bits
         e.g. minute 59
             24  25  26  <-- `bitCount` or bit # of ltc schema
             1   0   1   <-- 50 = seconds *tens place* (value at corresponding bit #)
             10  20  40  <-- weight of the corresponding value
-    */       
+    */
     case 40:
         currentBit = ((minuteCount / 10 % 10) >> (1 - 1)) & 1;
         update_OCR2B();
@@ -258,12 +258,12 @@ void setLevel(void)
         update_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    hours ones place (0-9) - 4 bits    
-        e.g. hour 15 
+    hours ones place (0-9) - 4 bits
+        e.g. hour 15
             48  49  50  51  <-- `bitCount` or bit # of ltc schema
             1   0   1   0   <-- 5 = hours *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
-    */   
+    */
     case 48:
         currentBit = ((hourCount % 10) >> (1 - 1)) & 1;
         update_OCR2B();
@@ -297,7 +297,7 @@ void setLevel(void)
             56  57   <-- `bitCount` or bit # of ltc schema
             1   0   <-- 10 = hours *tens place* (value at corresponding bit #)
             10  20  <-- weight  of the corresponding value
-    */      
+    */
     case 56:
         currentBit = ((hourCount / 10 % 10) >> (1 - 1)) & 1;
         update_OCR2B();
@@ -336,23 +336,23 @@ void setLevel(void)
             0  0  [ (12) x 1 ]  0  1  (reflected in the remaining `currentBit` values)
             prefix and suffix bit pairs are used to get direction of playback
             works bc 12 consecutive 1s cannot appear anywhere else in the schema
-    */    
-    case 64 ... 65:         // 2x 0
+    */
+    case 64 ... 65: // 2x 0
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
         break;
-    case 66 ... 77:         // 12x 1
+    case 66 ... 77: // 12x 1
         currentBit = 1;
         update_OCR2B();
         update_polarBit();
         break;
-    case 78:                // 0
+    case 78: // 0
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
         break;
-    case 79:                // 1
+    case 79: // 1
         currentBit = 1;
         update_OCR2B();
         update_polarBit();
@@ -362,34 +362,38 @@ void setLevel(void)
     }
 }
 
+/* Keeps track of bit, frame, second, minute, & hour counts. */
 void timeUpdate(void)
 {
-    // return if we're at the end of a tc frame
+    // increment bit count and return, if not at end of a frame
     if (bitCount < 79) {
         bitCount++;
         return;
     }
-    bitCount = 0; // reset
+    bitCount = 0;
 
-    // return if we're at the end of a second
+    // increment frame count and return, if not at end of a second
     if (frameCount < 24) {
         frameCount++;
         return;
     }
     frameCount = 0;
 
+    // increment second count and return, if not at end of a minute
     if (secondCount < 59) {
         secondCount++;
         return;
     }
     secondCount = 0;
 
+    // increment minute count and return, if not at end of a frame
     if (minuteCount < 59) {
         minuteCount++;
         return;
     }
     minuteCount = 0;
-    
+
+    // increment hour count and return, if not at end of a day (end of 24 hr cycle)
     if (hourCount < 23) {
         hourCount++;
         return;
@@ -415,15 +419,15 @@ ISR(TIMER1_COMPA_vect)
 void update_OCR2B()
 {
     if (updateCnt) {
-        if (currentBit) 
+        if (currentBit)
             lastLevel = !lastLevel;
     } else {
         lastLevel = !lastLevel;
     }
 
-    OCR2B = lastLevel 
+    OCR2B = lastLevel
         ? 100
-        : 27; 
+        : 27;
 }
 
 void update_polarBit()
