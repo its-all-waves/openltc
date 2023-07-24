@@ -16,6 +16,8 @@ volatile unsigned char polarBit = 0;
 // Ian's Headers
 void update_OCR2B();
 void update_polarBit();
+void update_unused_bit();
+void update_OCR2B_and_polarBit();
 
 int main(void)
 {
@@ -58,30 +60,24 @@ void setLevel(void)
     case 0:
         polarBit = 0;
         currentBit = ((frameCount % 10) >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 1:
         currentBit = ((frameCount % 10) >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 2:
         currentBit = ((frameCount % 10) >> (3 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 3:
         currentBit = ((frameCount % 10) >> (4 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 1 - 4 bits */
     case 4 ... 7:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     frame number tens place (0-2) - 2 bits
@@ -92,30 +88,24 @@ void setLevel(void)
     */
     case 8:
         currentBit = ((frameCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 9:
         currentBit = ((frameCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flags - 2 bits
         bit 10 - drop frame
         bit 11 - color frame */
     case 10 ... 11:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 2 - 4 bits
     */
     case 12 ... 15:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     seconds ones place (0-9) - 4 bits
@@ -126,30 +116,24 @@ void setLevel(void)
     */
     case 16:
         currentBit = (secondCount % 10 >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 17:
         currentBit = (secondCount % 10 >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 18:
         currentBit = (secondCount % 10 >> (3 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 19:
         currentBit = (secondCount % 10 >> (4 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 3 - 4 bits */
     case 20 ... 23:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     seconds tens place (0-9) - 3 bits
@@ -160,32 +144,25 @@ void setLevel(void)
     */
     case 24:
         currentBit = ((secondCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 25:
         currentBit = ((secondCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 26:
         currentBit = ((secondCount / 10 % 10) >> (3 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flag *see note* */
     case 27:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 4 - 4 bits */
     case 28 ... 31:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     minutes ones place (0-9) - 4 bits
@@ -196,30 +173,24 @@ void setLevel(void)
     */
     case 32:
         currentBit = ((minuteCount % 10) >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 33:
         currentBit = ((minuteCount % 10) >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 34:
         currentBit = ((minuteCount % 10) >> (3 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 35:
         currentBit = ((minuteCount % 10) >> (4 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 5 - 4 bits */
     case 36 ... 39:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     minutes tens place (0-9) - 3 bits
@@ -230,32 +201,25 @@ void setLevel(void)
     */
     case 40:
         currentBit = ((minuteCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 41:
         currentBit = ((minuteCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 42:
         currentBit = ((minuteCount / 10 % 10) >> (3 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flag *see note* */
     case 43:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 6 - 4 bits */
     case 44 ... 47:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     hours ones place (0-9) - 4 bits
@@ -266,30 +230,24 @@ void setLevel(void)
     */
     case 48:
         currentBit = ((hourCount % 10) >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 49:
         currentBit = ((hourCount % 10) >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 50:
         currentBit = ((hourCount % 10) >> (3 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 51:
         currentBit = ((hourCount % 10) >> (4 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 7 - 4 bits */
     case 52 ... 55:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     hours tens place (0-2) - 2 bits
@@ -300,34 +258,27 @@ void setLevel(void)
     */
     case 56:
         currentBit = ((hourCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 57:
         currentBit = ((hourCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     clock flag (aka BGF1) */
     case 58:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flag *see note* */
     case 59:
         currentBit = (polarBit);
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 8 (final) - 4 bits */
     case 60 ... 63:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     fixed pattern for sync - 16 bits (thru end of tc frame/schema)
@@ -338,24 +289,18 @@ void setLevel(void)
             works bc 12 consecutive 1s cannot appear anywhere else in the schema
     */
     case 64 ... 65: // 2x 0
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     case 66 ... 77: // 12x 1
         currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     case 78: // 0
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
+        update_unused_bit();
         break;
     case 79: // 1
         currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
+        update_OCR2B_and_polarBit();
         break;
     default:
         OCR2B = 63;
@@ -434,4 +379,19 @@ void update_polarBit()
 {
     if (updateCnt & !currentBit)
         polarBit = !polarBit;
+}
+
+/* temporarily named. does the work for many cases. */
+void update_unused_bit()
+{
+    currentBit = 0;
+    update_OCR2B();
+    update_polarBit();
+}
+
+/* does a chunk of the work for many cases. */
+void update_OCR2B_and_polarBit()
+{
+    update_OCR2B();
+    update_polarBit();    
 }
