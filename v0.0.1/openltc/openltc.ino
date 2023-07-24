@@ -19,36 +19,38 @@ void update_polarBit();
 void update_unused_bit();
 void update_OCR2B_and_polarBit();
 
+/* main() comments curtesy of GPT 4 */
 int main(void)
 {
-    DDRD = 0b00101000;
-    DDRB = 0b00110000;
+    DDRD = 0b00101000; // set the data direction for port D. 1 = output, 0 = input
+    DDRB = 0b00110000; // same, for port B
 
     // 50% PWM Ground Level
-    TCCR0A = _BV(COM0A1) | _BV(COM0B1) | _BV(WGM01) | _BV(WGM00);
-    TCCR0B = _BV(WGM02) | _BV(CS00);
-    OCR0A = 1;
-    OCR0B = 0;
+    TCCR0A = _BV(COM0A1) | _BV(COM0B1) | _BV(WGM01) | _BV(WGM00); // configure timer/counter 0 for fast PWM mode
+    TCCR0B = _BV(WGM02) | _BV(CS00); // set the clock source for timer/counter 0 to be the system clock with no prescaling
+    OCR0A = 1; // set the compare match value for output compare unit A of timer/counter 0
+    OCR0B = 0; // same, for output compare unit B
 
     // Set Output to Ground Level
-    TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20);
-    TCCR2B = _BV(WGM22) | _BV(CS20);
-    OCR2A = 127;
-    OCR2B = 63;
+    TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20); // configure timer/counter 2 for fast PWM mode
+    TCCR2B = _BV(WGM22) | _BV(CS20); // set the clock source for timer/counter 2 to be the system clock with no prescaling
+    OCR2A = 127; // set the compare match value for output compare unit A of timer/counter 2
+    OCR2B = 63;  // same, for output compare unit B
 
     // Per 1/2-Bit Interrupt
-    TCCR1A = 0b00 << WGM10;
-    TCCR1B = 0b01 << WGM12 | 0b001 << CS10;
-    OCR1A = 3995; // 3999@25fps
-    TIMSK1 = 1 << OCIE1A;
-    sei();
+    TCCR1A = 0b00 << WGM10; // configure timer/counter 1 for CTC mode (clear timer on compare match)
+    TCCR1B = 0b01 << WGM12 | 0b001 << CS10; // set the clock source for timer/counter 1 to be the system clock with no prescaling
+    OCR1A = 3999; //() //3995; // (3999@25fps) set the compare match value for output compare unit A of timer/counter 1
+    TIMSK1 = 1 << OCIE1A; // enable the output compare interrupt for output compare unit A of timer/counter 1
+    sei(); // enable global interrupts
 
     while (1) {
+        // do nothing and wait for interrupts
     }
 }
 
-/* Ian -- assuming this sets the level of the sorta-pwm output at each bit if the ltc schema 
-for info on the flags: 
+/* Ian -- assuming this sets the level of the sorta-pwm output at each bit of
+the ltc schema for info on the flags: 
     https://en.wikipedia.org/wiki/Linear_timecode#cite_note-BR.780-2-1 
         > SMPTE linear timecode table footnotes */
 void setLevel(void)
@@ -307,11 +309,12 @@ void setLevel(void)
         update_OCR2B_and_polarBit();
         break;
     default:
+        // if on no particular bit, set OCR2B to 63 (0.25 * full byte of 256)
         OCR2B = 63;
     }
 }
 
-/* Keeps track of bit, frame, second, minute, & hour counts. */
+/* keeps track of and updates bit, frame, second, minute, & hour counts. */
 void timeUpdate(void)
 {
     // ++ bit count and return, if not at end of a frame
@@ -350,6 +353,12 @@ void timeUpdate(void)
     hourCount = 0;
 }
 
+/* Interrupt Service Routine
+    triggered by a state change at a specified pin.
+    interrupts whatever is currently happening.
+    ??? what is the specified pin?
+    ??? which state change is this catching? rising, falling, or change?
+ */
 ISR(TIMER1_COMPA_vect)
 {
     setLevel();
