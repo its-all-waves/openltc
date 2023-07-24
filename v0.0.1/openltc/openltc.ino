@@ -47,6 +47,10 @@ int main(void)
     }
 }
 
+/* Ian -- assuming this sets the level of the sorta-pwm output at each bit if the ltc schema 
+for info on the flags: 
+    https://en.wikipedia.org/wiki/Linear_timecode#cite_note-BR.780-2-1 
+        > SMPTE linear timecode table footnotes */
 void setLevel(void)
 {
     switch (bitCount) {
