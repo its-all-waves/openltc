@@ -62,17 +62,17 @@ void setLevel(void)
         update_polarBit();
         break;
     case 1:
-        currentBit = (((frameCount % 10) >> (2 - 1)) & 1);
+        currentBit = ((frameCount % 10) >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 2:
-        currentBit = (((frameCount % 10) >> (3 - 1)) & 1);
+        currentBit = ((frameCount % 10) >> (3 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 3:
-        currentBit = (((frameCount % 10) >> (4 - 1)) & 1);
+        currentBit = ((frameCount % 10) >> (4 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
@@ -91,12 +91,12 @@ void setLevel(void)
             10  20  <-- weight  of the corresponding value
     */
     case 8:
-        currentBit = (((frameCount / 10 % 10) >> (1 - 1)) & 1);
+        currentBit = ((frameCount / 10 % 10) >> (1 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 9:
-        currentBit = (((frameCount / 10 % 10) >> (2 - 1)) & 1);
+        currentBit = ((frameCount / 10 % 10) >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
@@ -365,28 +365,28 @@ void setLevel(void)
 /* Keeps track of bit, frame, second, minute, & hour counts. */
 void timeUpdate(void)
 {
-    // increment bit count and return, if not at end of a frame
+    // ++ bit count and return, if not at end of a frame
     if (bitCount < 79) {
         bitCount++;
         return;
     }
     bitCount = 0;
 
-    // increment frame count and return, if not at end of a second
+    // ++ frame count and return, if not at end of a second
     if (frameCount < 24) {
         frameCount++;
         return;
     }
     frameCount = 0;
 
-    // increment second count and return, if not at end of a minute
+    // ++ second count and return, if not at end of a minute
     if (secondCount < 59) {
         secondCount++;
         return;
     }
     secondCount = 0;
 
-    // increment minute count and return, if not at end of a frame
+    // ++ minute count and return, if not at end of a frame
     if (minuteCount < 59) {
         minuteCount++;
         return;
