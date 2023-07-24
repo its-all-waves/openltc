@@ -78,22 +78,7 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 1 - 4 bits */
-    case 4:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 5:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 6:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 7:
+    case 4 ... 7:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -119,12 +104,7 @@ void setLevel(void)
     flags - 2 bits
     bit 10 - drop frame
     bit 11 - color frame */
-    case 10:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 11:
+    case 10 ... 11:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -132,22 +112,7 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 2 - 4 bits
     */
-    case 12:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 13:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 14:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 15:
+    case 12 ... 15:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -181,22 +146,7 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 3 - 4 bits */ 
-    case 20:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 21:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 22:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 23:
+    case 20 ... 23:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -232,22 +182,7 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 4 - 4 bits */  
-    case 28:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 29:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 30:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 31:
+    case 28 ... 31:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -281,22 +216,7 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 5 - 4 bits */ 
-    case 36:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 37:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 38:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 39:
+    case 36 ... 39:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -332,22 +252,7 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 6 - 4 bits */
-    case 44:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 45:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 46:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 47:
+    case 44 ... 47:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -381,22 +286,7 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 7 - 4 bits */
-    case 52:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 53:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 54:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 55:
+    case 52 ... 55:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -434,22 +324,7 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 8 (final) - 4 bits */
-    case 60:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 61:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 62:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 63:
+    case 60 ... 63:
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
@@ -462,82 +337,22 @@ void setLevel(void)
             prefix and suffix bit pairs are used to get direction of playback
             works bc 12 consecutive 1s cannot appear anywhere else in the schema
     */    
-    case 64:
+    case 64 ... 65:         // 2x 0
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
         break;
-    case 65:
+    case 66 ... 77:         // 12x 1
+        currentBit = 1;
+        update_OCR2B();
+        update_polarBit();
+        break;
+    case 78:                // 0
         currentBit = 0;
         update_OCR2B();
         update_polarBit();
         break;
-    case 66:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 67:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 68:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 69:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 70:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 71:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 72:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 73:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 74:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 75:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 76:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 77:
-        currentBit = 1;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 78:
-        currentBit = 0;
-        update_OCR2B();
-        update_polarBit();
-        break;
-    case 79:
+    case 79:                // 1
         currentBit = 1;
         update_OCR2B();
         update_polarBit();
