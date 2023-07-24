@@ -519,16 +519,12 @@ void timeUpdate(void)
 }
 
 ISR(TIMER1_COMPA_vect)
-{
-    
+{   
   setLevel();
 
-  if(updateCnt == 0)
-  {
+  if (updateCnt == 0) {
     updateCnt ++;
-  }
-  else
-  {
+  } else {
     updateCnt = 0;
     timeUpdate();
   }          

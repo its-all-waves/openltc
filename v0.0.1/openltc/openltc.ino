@@ -102,8 +102,8 @@ void setLevel(void)
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flags - 2 bits
-    bit 10 - drop frame
-    bit 11 - color frame */
+        bit 10 - drop frame
+        bit 11 - color frame */
     case 10 ... 11:
         currentBit = 0;
         update_OCR2B();
@@ -125,22 +125,22 @@ void setLevel(void)
             1   2   4   8   <-- weight of the corresponding value
     */  
     case 16:
-        currentBit = (((secondCount % 10) >> (1 - 1)) & 1);
+        currentBit = (secondCount % 10 >> (1 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 17:
-        currentBit = (((secondCount % 10) >> (2 - 1)) & 1);
+        currentBit = (secondCount % 10 >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 18:
-        currentBit = (((secondCount % 10) >> (3 - 1)) & 1);
+        currentBit = (secondCount % 10 >> (3 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 19:
-        currentBit = (((secondCount % 10) >> (4 - 1)) & 1);
+        currentBit = (secondCount % 10 >> (4 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
@@ -159,17 +159,17 @@ void setLevel(void)
             10  20  40  <-- weight of the corresponding value
     */      
     case 24:
-        currentBit = (((secondCount / 10 % 10) >> (1 - 1)) & 1);
+        currentBit = ((secondCount / 10 % 10) >> (1 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 25:
-        currentBit = (((secondCount / 10 % 10) >> (2 - 1)) & 1);
+        currentBit = ((secondCount / 10 % 10) >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 26:
-        currentBit = (((secondCount / 10 % 10) >> (3 - 1)) & 1);
+        currentBit = ((secondCount / 10 % 10) >> (3 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
@@ -195,22 +195,22 @@ void setLevel(void)
             1   2   4   8   <-- weight of the corresponding value
     */  
     case 32:
-        currentBit = (((minuteCount % 10) >> (1 - 1)) & 1);
+        currentBit = ((minuteCount % 10) >> (1 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 33:
-        currentBit = (((minuteCount % 10) >> (2 - 1)) & 1);
+        currentBit = ((minuteCount % 10) >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 34:
-        currentBit = (((minuteCount % 10) >> (3 - 1)) & 1);
+        currentBit = ((minuteCount % 10) >> (3 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 35:
-        currentBit = (((minuteCount % 10) >> (4 - 1)) & 1);
+        currentBit = ((minuteCount % 10) >> (4 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
@@ -229,17 +229,17 @@ void setLevel(void)
             10  20  40  <-- weight of the corresponding value
     */       
     case 40:
-        currentBit = (((minuteCount / 10 % 10) >> (1 - 1)) & 1);
+        currentBit = ((minuteCount / 10 % 10) >> (1 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 41:
-        currentBit = (((minuteCount / 10 % 10) >> (2 - 1)) & 1);
+        currentBit = ((minuteCount / 10 % 10) >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 42:
-        currentBit = (((minuteCount / 10 % 10) >> (3 - 1)) & 1);
+        currentBit = ((minuteCount / 10 % 10) >> (3 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
@@ -265,22 +265,22 @@ void setLevel(void)
             1   2   4   8   <-- weight of the corresponding value
     */   
     case 48:
-        currentBit = (((hourCount % 10) >> (1 - 1)) & 1);
+        currentBit = ((hourCount % 10) >> (1 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 49:
-        currentBit = (((hourCount % 10) >> (2 - 1)) & 1);
+        currentBit = ((hourCount % 10) >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 50:
-        currentBit = (((hourCount % 10) >> (3 - 1)) & 1);
+        currentBit = ((hourCount % 10) >> (3 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 51:
-        currentBit = (((hourCount % 10) >> (4 - 1)) & 1);
+        currentBit = ((hourCount % 10) >> (4 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
@@ -299,12 +299,12 @@ void setLevel(void)
             10  20  <-- weight  of the corresponding value
     */      
     case 56:
-        currentBit = (((hourCount / 10 % 10) >> (1 - 1)) & 1);
+        currentBit = ((hourCount / 10 % 10) >> (1 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
     case 57:
-        currentBit = (((hourCount / 10 % 10) >> (2 - 1)) & 1);
+        currentBit = ((hourCount / 10 % 10) >> (2 - 1)) & 1;
         update_OCR2B();
         update_polarBit();
         break;
