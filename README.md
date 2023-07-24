@@ -1,5 +1,7 @@
 # openltc
 An Open Source SMPTE Linear Timecode Generator Based on ATmega328P(Arduino UNO).
+
+Will document better when we understand better!
  
 #Arduino #LTC #TimeCode
  
