@@ -1,6 +1,13 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
+// #define DEBUG_OCR1A_TIME_FACTOR 4000 // 25 fps
+#define FPS_23 0
+#define FPS_24 1
+#define FPS_25 2
+#define FPS_29 3
+#define FPS_30 4
+
 volatile unsigned char hourCount = 0;
 volatile unsigned char minuteCount = 0;
 volatile unsigned char secondCount = 0;
@@ -13,11 +20,11 @@ volatile unsigned char currentBit = 0;
 volatile unsigned char lastLevel = 0;
 volatile unsigned char polarBit = 0;
 
-// Ian's Headers
 void update_OCR2B();
 void update_polarBit();
 void update_unused_bit();
 void update_OCR2B_and_polarBit();
+unsigned short OCR1A_time_factor_from(unsigned char frame_rate_id);
 
 /* main() comments curtesy of GPT 4 */
 int main(void)
@@ -40,7 +47,7 @@ int main(void)
     // Per 1/2-Bit Interrupt
     TCCR1A = 0b00 << WGM10; // configure timer/counter 1 for CTC mode (clear timer on compare match)
     TCCR1B = 0b01 << WGM12 | 0b001 << CS10; // set the clock source for timer/counter 1 to be the system clock with no prescaling
-    OCR1A = 3999; //() //3995; // (3999@25fps) set the compare match value for output compare unit A of timer/counter 1
+    OCR1A = OCR1A_time_factor_from(FPS_25); // 3995; // (3999@25fps) set the compare match value for output compare unit A of timer/counter 1
     TIMSK1 = 1 << OCIE1A; // enable the output compare interrupt for output compare unit A of timer/counter 1
     sei(); // enable global interrupts
 
@@ -371,9 +378,6 @@ ISR(TIMER1_COMPA_vect)
     }
 }
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-// 23.07.23 by Ian
-
 void update_OCR2B()
 {
     if (updateCnt) {
@@ -407,4 +411,54 @@ void update_OCR2B_and_polarBit()
 {
     update_OCR2B();
     update_polarBit();    
+}
+
+/* utility + debugging function - UNTESTED
+returns a value for OCR1A from a frame rate. OCR1A is the data that determines
+the duty cycle of the PWM output. OCR refers to Output Compare Register. It's
+the value that, when matched by its corresponding counter value, triggers an
+interrupt. ... I THINK ...
+ */
+unsigned short OCR1A_time_factor_from(unsigned char frame_rate_id)
+{
+    if (frame_rate_id < 0 || frame_rate_id > 4)
+        return;
+
+    unsigned short frame_dur_us; // frame duration in microsec, avoiding float
+    switch (frame_rate_id) {
+    case 0: // 23.976
+        frame_dur_us = 41708;
+        break;
+    case 1: // 24
+        frame_dur_us = 41667;
+        break;
+    case 2: // 25
+        frame_dur_us = 40000;
+        break;
+    case 3: // 29.97
+        frame_dur_us = 33367;
+        break;
+    case 4: // 30
+        frame_dur_us = 33333;
+        break;
+    default:
+        break;
+    }
+
+    /* Atmega328p has a 16MHz clock. since no prescaler is used in the program, 
+    the timer/counter produces 16 million ticks per second, or one tick per
+    clock cycle. 
+    
+    *** Letting the return value truncate, for now. Will check for accuracy
+    later. I should probably round it...
+
+        (ticks_per_sec * frame_dur_sec) / interrupts_per_frame 
+    */
+
+    // TODO: do I round or truncate here? neither fixed the rapid drift
+    // TODO: is it possible that this function is causing the rapid drift, as it
+    // seems a little worse than before, but I could be hallucinating a
+    // difference. try just #define-ing the outputs of this function and see if
+    // the drift appears to be less
+    return round(((16000000 * (frame_dur_us / 1000000.0)) / 160)) - 1;
 }
