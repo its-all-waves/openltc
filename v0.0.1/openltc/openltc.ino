@@ -20,25 +20,25 @@ volatile unsigned char currentBit = 0;
 volatile unsigned char lastLevel = 0;
 volatile unsigned char polarBit = 0;
 
-void update_OCR2B();
+void update_timer2_compareB_register();
 void update_polarBit();
 void update_unused_bit();
-void update_OCR2B_and_polarBit();
-unsigned short OCR1A_time_factor_from(unsigned char frame_rate_id);
+void update_timer2_compareB_register_and_polarBit();
+unsigned short timer1_compare_val_from(unsigned char frame_rate_id);
 
 /* main() comments curtesy of GPT 4 */
 int main(void)
 {
-    DDRD = 0b00101000; // set the data direction for port D. 1 = output, 0 = input
-    DDRB = 0b00110000; // same, for port B
+    DDRD = 0b00101000; // set port D's pins 3 and 5 to OUTPUT, rest to  INPUT. audio connections: pin3 -> hot, pin 5 -> ground (seems to give a correctly-phased output)
+    DDRB = 0b00110000; // set port B's pins 12 and 13 to OUTPUT, rest to INPUT. TODO: what are we doing with port B? seens unused in this version. probably used in RTC supporting version.
 
     // 50% PWM Ground Level
     TCCR0A = _BV(COM0A1) | _BV(COM0B1) | _BV(WGM01) | _BV(WGM00); // configure timer/counter 0 for fast PWM mode
-    TCCR0B = _BV(WGM02) | _BV(CS00); // set the clock source for timer/counter 0 to be the system clock with no prescaling
+    TCCR0B = _BV(WGM02) | _BV(CS00); // set the clock source for timer/counter 0 to be the system clock with no prescaling, so 16M ticks/sec
     OCR0A = 1; // set the compare match value for output compare unit A of timer/counter 0
-    OCR0B = 0; // same, for output compare unit B
+    OCR0B = 0; // same, for output compare unit B. TODO: why does a timer need multiple compare units?
 
-    // Set Output to Ground Level
+    // Set Output to Ground Level (timer2 is 8 bit, so max compare value is 255)
     TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20); // configure timer/counter 2 for fast PWM mode
     TCCR2B = _BV(WGM22) | _BV(CS20); // set the clock source for timer/counter 2 to be the system clock with no prescaling
     OCR2A = 127; // set the compare match value for output compare unit A of timer/counter 2
@@ -47,7 +47,7 @@ int main(void)
     // Per 1/2-Bit Interrupt
     TCCR1A = 0b00 << WGM10; // configure timer/counter 1 for CTC mode (clear timer on compare match)
     TCCR1B = 0b01 << WGM12 | 0b001 << CS10; // set the clock source for timer/counter 1 to be the system clock with no prescaling
-    OCR1A = OCR1A_time_factor_from(FPS_25); // 3995; // (3999@25fps) set the compare match value for output compare unit A of timer/counter 1
+    OCR1A = timer1_compare_val_from(FPS_25); // 3995; // (3999@25fps) set the compare match value for output compare unit A of timer/counter 1. timer1 is the main counter that determines either the frame rate or the rate of pulses. TODO: which is it?
     TIMSK1 = 1 << OCIE1A; // enable the output compare interrupt for output compare unit A of timer/counter 1
     sei(); // enable global interrupts
 
@@ -73,19 +73,19 @@ void setLevel(void)
     case 0:
         polarBit = 0;
         currentBit = ((frameCount % 10) >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 1:
         currentBit = ((frameCount % 10) >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 2:
         currentBit = ((frameCount % 10) >> (3 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 3:
         currentBit = ((frameCount % 10) >> (4 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 1 - 4 bits */
@@ -101,11 +101,11 @@ void setLevel(void)
     */
     case 8:
         currentBit = ((frameCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 9:
         currentBit = ((frameCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flags - 2 bits
@@ -129,19 +129,19 @@ void setLevel(void)
     */
     case 16:
         currentBit = (secondCount % 10 >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 17:
         currentBit = (secondCount % 10 >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 18:
         currentBit = (secondCount % 10 >> (3 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 19:
         currentBit = (secondCount % 10 >> (4 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 3 - 4 bits */
@@ -157,15 +157,15 @@ void setLevel(void)
     */
     case 24:
         currentBit = ((secondCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 25:
         currentBit = ((secondCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 26:
         currentBit = ((secondCount / 10 % 10) >> (3 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flag *see note* */
@@ -186,19 +186,19 @@ void setLevel(void)
     */
     case 32:
         currentBit = ((minuteCount % 10) >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 33:
         currentBit = ((minuteCount % 10) >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 34:
         currentBit = ((minuteCount % 10) >> (3 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 35:
         currentBit = ((minuteCount % 10) >> (4 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 5 - 4 bits */
@@ -214,15 +214,15 @@ void setLevel(void)
     */
     case 40:
         currentBit = ((minuteCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 41:
         currentBit = ((minuteCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 42:
         currentBit = ((minuteCount / 10 % 10) >> (3 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flag *see note* */
@@ -243,19 +243,19 @@ void setLevel(void)
     */
     case 48:
         currentBit = ((hourCount % 10) >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 49:
         currentBit = ((hourCount % 10) >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 50:
         currentBit = ((hourCount % 10) >> (3 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 51:
         currentBit = ((hourCount % 10) >> (4 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 7 - 4 bits */
@@ -271,11 +271,11 @@ void setLevel(void)
     */
     case 56:
         currentBit = ((hourCount / 10 % 10) >> (1 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 57:
         currentBit = ((hourCount / 10 % 10) >> (2 - 1)) & 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     clock flag (aka BGF1) */
@@ -286,7 +286,7 @@ void setLevel(void)
     flag *see note* */
     case 59:
         currentBit = (polarBit);
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 8 (final) - 4 bits */
@@ -306,14 +306,14 @@ void setLevel(void)
         break;
     case 66 ... 77: // 12x 1
         currentBit = 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     case 78: // 0
         update_unused_bit();
         break;
     case 79: // 1
         currentBit = 1;
-        update_OCR2B_and_polarBit();
+        update_timer2_compareB_register_and_polarBit();
         break;
     default:
         // if on no particular bit, set OCR2B to 63 (0.25 * full byte of 256)
@@ -378,7 +378,8 @@ ISR(TIMER1_COMPA_vect)
     }
 }
 
-void update_OCR2B()
+/* timer 2  */
+void update_timer2_compareB_register()
 {
     if (updateCnt) {
         if (currentBit)
@@ -402,14 +403,14 @@ void update_polarBit()
 void update_unused_bit()
 {
     currentBit = 0;
-    update_OCR2B();
+    update_timer2_compareB_register();
     update_polarBit();
 }
 
 /* does a chunk of the work for many cases. */
-void update_OCR2B_and_polarBit()
+void update_timer2_compareB_register_and_polarBit()
 {
-    update_OCR2B();
+    update_timer2_compareB_register();
     update_polarBit();    
 }
 
@@ -419,7 +420,7 @@ the duty cycle of the PWM output. OCR refers to Output Compare Register. It's
 the value that, when matched by its corresponding counter value, triggers an
 interrupt. ... I THINK ...
  */
-unsigned short OCR1A_time_factor_from(unsigned char frame_rate_id)
+unsigned short timer1_compare_val_from(unsigned char frame_rate_id)
 {
     if (frame_rate_id < 0 || frame_rate_id > 4)
         return;
@@ -457,7 +458,7 @@ unsigned short OCR1A_time_factor_from(unsigned char frame_rate_id)
 
     // TODO: do I round or truncate here? neither fixed the rapid drift
     // TODO: is it possible that this function is causing the rapid drift, as it
-    // seems a little worse than before, but I could be hallucinating a
+    // seems a little worse than before? but I could be hallucinating a
     // difference. try just #define-ing the outputs of this function and see if
     // the drift appears to be less
     return round(((16000000 * (frame_dur_us / 1000000.0)) / 160)) - 1;
