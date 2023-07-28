@@ -66,7 +66,7 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     frame number ones place (0-9) - 4 bits
         e.g. frame number 24
-            0   1   2   3   <-- `bitCount` or bit # of ltc schema
+            0   1   2   3   <-- bitCount or bit # of ltc schema
             0   0   1   0   <-- 4 = frame number *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
 
@@ -105,19 +105,19 @@ void setLevel(void)
     */
     case 0:
         polarBit = 0;
-        currentBit = ((frameCount % 10) >> (1 - 1)) & 1; // reduce the ones place to the value at *this bit position (bitCount)
+        currentBit = ((frameCount % 10) >> 0) & 1; // reduce the ones place to the value at *this bit position (bitCount)
         update_timer2_compareB_and_polarBit();
         break;
     case 1:
-        currentBit = ((frameCount % 10) >> (2 - 1)) & 1; // ...*this bit position
+        currentBit = ((frameCount % 10) >> 1) & 1; // ...*this bit position
         update_timer2_compareB_and_polarBit();
         break;
     case 2:
-        currentBit = ((frameCount % 10) >> (3 - 1)) & 1; // ...*this...
+        currentBit = ((frameCount % 10) >> 2) & 1; // ...*this...
         update_timer2_compareB_and_polarBit();
         break;
     case 3:
-        currentBit = ((frameCount % 10) >> (4 - 1)) & 1; // ...*this...
+        currentBit = ((frameCount % 10) >> 3) & 1; // ...*this...
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -128,16 +128,16 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     frame number tens place (0-2) - 2 bits
         e.g. frame number 24
-            8   9   <-- `bitCount` or bit # of ltc schema
+            8   9   <-- bitCount or bit # of ltc schema
             0   1   <-- 20 = frame number *tens place* (value at corresponding bit #)
             10  20  <-- weight  of the corresponding value
     */
     case 8:
-        currentBit = ((frameCount / 10 % 10) >> (1 - 1)) & 1;
+        currentBit = ((frameCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 9:
-        currentBit = ((frameCount / 10 % 10) >> (2 - 1)) & 1;
+        currentBit = ((frameCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -156,24 +156,24 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     seconds ones place (0-9) - 4 bits
         e.g. second 36
-            16  17  18  19  <-- `bitCount` or bit # of ltc schema
+            16  17  18  19  <-- bitCount or bit # of ltc schema
             0   1   1   0   <-- 6 = seconds *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
     */
     case 16:
-        currentBit = (secondCount % 10 >> (1 - 1)) & 1;
+        currentBit = (secondCount % 10 >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 17:
-        currentBit = (secondCount % 10 >> (2 - 1)) & 1;
+        currentBit = (secondCount % 10 >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 18:
-        currentBit = (secondCount % 10 >> (3 - 1)) & 1;
+        currentBit = (secondCount % 10 >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 19:
-        currentBit = (secondCount % 10 >> (4 - 1)) & 1;
+        currentBit = (secondCount % 10 >> 3) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -184,20 +184,20 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     seconds tens place (0-9) - 3 bits
         e.g. second 36
-            24  25  26  <-- `bitCount` or bit # of ltc schema
+            24  25  26  <-- bitCount or bit # of ltc schema
             1   1   0   <-- 30 = seconds *tens place* (value at corresponding bit #)
             10  20  40  <-- weight of the corresponding value
     */
     case 24:
-        currentBit = ((secondCount / 10 % 10) >> (1 - 1)) & 1;
+        currentBit = ((secondCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 25:
-        currentBit = ((secondCount / 10 % 10) >> (2 - 1)) & 1;
+        currentBit = ((secondCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 26:
-        currentBit = ((secondCount / 10 % 10) >> (3 - 1)) & 1;
+        currentBit = ((secondCount / 10 % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -213,24 +213,24 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     minutes ones place (0-9) - 4 bits
         e.g. minute 59
-            32  33  34  35  <-- `bitCount` or bit # of ltc schema
+            32  33  34  35  <-- bitCount or bit # of ltc schema
             1   0   0   1   <-- 9 = minutes *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
     */
     case 32:
-        currentBit = ((minuteCount % 10) >> (1 - 1)) & 1;
+        currentBit = ((minuteCount % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 33:
-        currentBit = ((minuteCount % 10) >> (2 - 1)) & 1;
+        currentBit = ((minuteCount % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 34:
-        currentBit = ((minuteCount % 10) >> (3 - 1)) & 1;
+        currentBit = ((minuteCount % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 35:
-        currentBit = ((minuteCount % 10) >> (4 - 1)) & 1;
+        currentBit = ((minuteCount % 10) >> 3) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -241,20 +241,20 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     minutes tens place (0-9) - 3 bits
         e.g. minute 59
-            24  25  26  <-- `bitCount` or bit # of ltc schema
+            24  25  26  <-- bitCount or bit # of ltc schema
             1   0   1   <-- 50 = seconds *tens place* (value at corresponding bit #)
             10  20  40  <-- weight of the corresponding value
     */
     case 40:
-        currentBit = ((minuteCount / 10 % 10) >> (1 - 1)) & 1;
+        currentBit = ((minuteCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 41:
-        currentBit = ((minuteCount / 10 % 10) >> (2 - 1)) & 1;
+        currentBit = ((minuteCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 42:
-        currentBit = ((minuteCount / 10 % 10) >> (3 - 1)) & 1;
+        currentBit = ((minuteCount / 10 % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -270,24 +270,24 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     hours ones place (0-9) - 4 bits
         e.g. hour 15
-            48  49  50  51  <-- `bitCount` or bit # of ltc schema
+            48  49  50  51  <-- bitCount or bit # of ltc schema
             1   0   1   0   <-- 5 = hours *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
     */
     case 48:
-        currentBit = ((hourCount % 10) >> (1 - 1)) & 1;
+        currentBit = ((hourCount % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 49:
-        currentBit = ((hourCount % 10) >> (2 - 1)) & 1;
+        currentBit = ((hourCount % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 50:
-        currentBit = ((hourCount % 10) >> (3 - 1)) & 1;
+        currentBit = ((hourCount % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 51:
-        currentBit = ((hourCount % 10) >> (4 - 1)) & 1;
+        currentBit = ((hourCount % 10) >> 3) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -298,16 +298,16 @@ void setLevel(void)
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     hours tens place (0-2) - 2 bits
         e.g. hour 15
-            56  57   <-- `bitCount` or bit # of ltc schema
+            56  57   <-- bitCount or bit # of ltc schema
             1   0   <-- 10 = hours *tens place* (value at corresponding bit #)
             10  20  <-- weight  of the corresponding value
     */
     case 56:
-        currentBit = ((hourCount / 10 % 10) >> (1 - 1)) & 1;
+        currentBit = ((hourCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 57:
-        currentBit = ((hourCount / 10 % 10) >> (2 - 1)) & 1;
+        currentBit = ((hourCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -330,7 +330,7 @@ void setLevel(void)
     fixed pattern for sync - 16 bits (thru end of tc frame/schema)
         occurs at end of each frame of picture/timecode
         must be these 16 bits (assuming playback is forward, as usual):
-            0  0  [ (12) x 1 ]  0  1  (reflected in the remaining `currentBit` values)
+            0  0  [ (12) x 1 ]  0  1  (reflected in the remaining currentBit values)
             prefix and suffix bit pairs are used to get direction of playback
             works bc 12 consecutive 1s cannot appear anywhere else in the schema
     */
