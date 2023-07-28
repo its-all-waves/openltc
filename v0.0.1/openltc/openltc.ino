@@ -42,7 +42,7 @@ int main(void)
     TCCR2A = _BV(COM2A1) | _BV(COM2B1) | _BV(WGM21) | _BV(WGM20); // configure timer/counter 2 for fast PWM mode
     TCCR2B = _BV(WGM22) | _BV(CS20); // set the clock source for timer/counter 2 to be the system clock with no prescaling
     OCR2A = 127; // set the compare match value for output compare unit A of timer/counter 2
-    OCR2B = 63;  // same, for output compare unit B
+    OCR2B = 63; // same, for output compare unit B
 
     // Per 1/2-Bit Interrupt
     TCCR1A = 0b00 << WGM10; // configure timer/counter 1 for CTC mode (clear timer on compare match)
@@ -57,8 +57,8 @@ int main(void)
 }
 
 /* Ian -- assuming this sets the level of the sorta-pwm output at each bit of
-the ltc schema for info on the flags: 
-    https://en.wikipedia.org/wiki/Linear_timecode#cite_note-BR.780-2-1 
+the ltc schema for info on the flags:
+    https://en.wikipedia.org/wiki/Linear_timecode#cite_note-BR.780-2-1
         > SMPTE linear timecode table footnotes */
 void setLevel(void)
 {
@@ -69,22 +69,55 @@ void setLevel(void)
             0   1   2   3   <-- `bitCount` or bit # of ltc schema
             0   0   1   0   <-- 4 = frame number *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
+
+
+        how we get a binary # from a specific place in the frame count
+            given: frame count cycles bt 0 and FPS
+            remember: LSB on LEFT
+
+            24 -> binary(4) = 0 0 1 0
+
+            BIT 0
+                24 % 10 = 4  ->
+                4 >> 0 = 4 ->
+                4 & 1  ->  0 0 1 0
+                        &  1 0 0 0
+                        ----------
+            BIT 0 = 0 ->   0 0 0 0
+            ---------
+            BIT 1
+                24 % 10 = 4  ->
+                4 >> 1 = 0 0 1 0 >> 1 = 0 1 0 0 = 2 ->
+                2 & 1 = 0 = BIT 1
+                        ---------
+            BIT 2
+                24 % 10 = 4 ->
+                4 >> 2 = 1 ->
+                1 & 1 = 1 = BIT 2
+                        ---------
+            BIT 3
+                24 % 10 = 4 ->
+                4 >> 3 = 0 ->
+                0 & 1 = 0 = BIT 3
+                        ---------
+
+            Output as confirmed above: 0 0 1 0 (1 on bit 2, LSB left)
     */
     case 0:
         polarBit = 0;
-        currentBit = ((frameCount % 10) >> (1 - 1)) & 1;
+        currentBit = ((frameCount % 10) >> (1 - 1)) & 1; // reduce the ones place to the value at *this bit position (bitCount)
         update_timer2_compareB_and_polarBit();
         break;
     case 1:
-        currentBit = ((frameCount % 10) >> (2 - 1)) & 1;
+        currentBit = ((frameCount % 10) >> (2 - 1)) & 1; // ...*this bit position
         update_timer2_compareB_and_polarBit();
         break;
     case 2:
-        currentBit = ((frameCount % 10) >> (3 - 1)) & 1;
+        currentBit = ((frameCount % 10) >> (3 - 1)) & 1; // ...*this...
         update_timer2_compareB_and_polarBit();
         break;
     case 3:
-        currentBit = ((frameCount % 10) >> (4 - 1)) & 1;
+        currentBit = ((frameCount % 10) >> (4 - 1)) & 1; // ...*this...
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -361,10 +394,7 @@ void timeUpdate(void)
 }
 
 /* Interrupt Service Routine
-    triggered by a state change at a specified pin.
-    interrupts whatever is currently happening.
-    ??? what is the specified pin?
-    ??? which state change is this catching? rising, falling, or change?
+    triggered everytime timer1 compareA match value reaches  
  */
 ISR(TIMER1_COMPA_vect)
 {
@@ -380,7 +410,7 @@ ISR(TIMER1_COMPA_vect)
 void update_timer2_compareB()
 {
     /* invert lastLevel when A or B is true:
-        A) we're at the start of a bit period, 
+        A) we're at the start of a bit period,
         B) we're at the middle of a bit period & the LTC bit to be sent is a 1 */
     if (!updateCnt || (updateCnt && currentBit))
         lastLevel = !lastLevel;
@@ -397,7 +427,7 @@ void update_polarBit()
         polarBit = !polarBit;
 }
 
-/* writes a zero bit 
+/* writes a zero bit
 TODO: is all of this really related to writing a zero bit? */
 void write_0_bit()
 {
@@ -410,7 +440,7 @@ void write_0_bit()
 void update_timer2_compareB_and_polarBit()
 {
     update_timer2_compareB();
-    update_polarBit();    
+    update_polarBit();
 }
 
 /* utility + debugging function - UNTESTED
@@ -447,12 +477,9 @@ unsigned short timer1_compareA_from(unsigned char frame_rate_id)
 
     /* Atmega328p gets a 16MHz clock signal from the Uno. since no prescaler is
     used in the program, the timer/counter produces 16 million ticks per second,
-    or one tick per clock cycle. 
-    
-    *** Letting the return value truncate, for now. Will check for accuracy
-    later. I should probably round it...
+    or one tick per clock cycle.
 
-        (ticks_per_sec * frame_dur_sec) / interrupts_per_frame 
+        (ticks_per_sec * frame_dur_sec) / interrupts_per_frame
     */
 
     // TODO: do I round or truncate here? neither fixed the rapid drift
@@ -460,6 +487,6 @@ unsigned short timer1_compareA_from(unsigned char frame_rate_id)
     // seems a little worse than before? but I could be hallucinating a
     // difference. try just #define-ing the outputs of this function and see if
     // the drift appears to be less
-    double frame_dur_sec = frame_dur_us / 1000000.0;
+    double frame_dur_sec = frame_dur_us / 1E6;
     return round(16E6 * frame_dur_sec / 160.0) - 1;
 }
