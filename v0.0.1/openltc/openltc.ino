@@ -8,29 +8,53 @@
 #define FPS_29 3
 #define FPS_30 4
 
+// The time values outputted as LTC
 volatile unsigned char hourCount = 0;
 volatile unsigned char minuteCount = 0;
 volatile unsigned char secondCount = 0;
 volatile unsigned char frameCount = 0;
+volatile unsigned char bitCount = 0; // 80 bits make a frame per LTC spec
 
-volatile unsigned char bitCount = 0;
-volatile unsigned char updateCnt = 0;
-volatile unsigned char currentBit = 0;
+volatile unsigned char outputBit = 0; // the bit to be outputted as LTC at each bit period / FKA currentBit
+volatile unsigned char updateCnt = 0; // 1 signals mid-bit period and thus the condition where we can output a 1 bit. toggles per interrupt.
+volatile unsigned char lastLevel = 0; // ??? intermediary used to determine if output wave goes high or low
 
-volatile unsigned char lastLevel = 0;
-volatile unsigned char polarBit = 0;
+volatile unsigned char polarBit = 0; // ??? set to 0 at 0th bit of each frame
+/* TODO: understand polarBit
+    where it's used & what it's doing there:
+        A) in setLevel() -> every bit, update_polarBit()
+            polarBit is inverted when mid bit period && outputting zero
+        B) in setLevel() -> LTC schema bit 0 / start of frame (1st instruction therein)
+            polarBit is hard set to 0
+            iow, polarBit starts as 0 for each LTC frame
+        C) in setLevel() -> LTC schema flag bit 59 (1st instruction) (maybe only in 25 FPS)
+            LTC bit to be outputted is set to polarBit (outputBit = polarBit)
 
+    ???
+        ?) what depends on polarBit?
+            bit 0 of each frame depends on polarBit starting as 0
+        ?) why is the outputBit set to polarBit in bit 59?
+            does this make bit 59 always, or sometimes 1?
+                either way, what does it mean?
+        ?) what is the significance of bit 59?
+            in 25 FPS?
+            in others?
+                advice from http://www.philrees.co.uk/articles/timecode.htm
+                    readers should ingore bits 27, 43, 58 and 59
+                    writers should set those bits to 0
+ */
+
+// helper fn headers
 void update_timer2_compareB();
 void update_polarBit();
 void write_0_bit();
 void update_timer2_compareB_and_polarBit();
 unsigned short timer1_compareA_from(unsigned char frame_rate_id);
 
-/* main() comments curtesy of GPT 4 */
 int main(void)
 {
-    DDRD = 0b00101000; // set port D's pins 3 and 5 to OUTPUT, rest to INPUT. audio connections: pin3 -> hot, pin 5 -> ground (seems to give a correctly-phased output)
-    DDRB = 0b00110000; // set port B's pins 12 and 13 to OUTPUT, rest to INPUT. TODO: what are we doing with port B? seens unused in this version. probably used in RTC supporting version.
+    DDRD = 0b00101000; // set port D's pins 3 and 5 to OUTPUT. audio connections: pin3 -> hot, pin 5 -> ground (seems to give a correctly-phased output)
+    DDRB = 0b00110000; // set port B's pins 12 and 13 to OUTPUT. TODO: what are we doing with port B? seens unused in this version. probably used in RTC supporting version.
 
     // 50% PWM Ground Level
     TCCR0A = _BV(COM0A1) | _BV(COM0B1) | _BV(WGM01) | _BV(WGM00); // configure timer/counter 0 for fast PWM mode
@@ -51,14 +75,15 @@ int main(void)
     TIMSK1 = 1 << OCIE1A; // enable the output compare interrupt for output compare unit A of timer/counter 1
     sei(); // enable global interrupts
 
-    while (1) {
-        // do nothing and wait for interrupts
-    }
+    // do nothing and wait for interrupts
+    while (1) { }
 }
 
-/* Ian -- assuming this sets the level of the sorta-pwm output at each bit of
-the ltc schema for info on the flags:
-    https://en.wikipedia.org/wiki/Linear_timecode#cite_note-BR.780-2-1
+/* computes the LTC bit to output and sets PWM (timer/clock) registers to output
+that bit
+
+    ltc schema:
+        https://en.wikipedia.org/wiki/Linear_timecode#cite_note-BR.780-2-1
         > SMPTE linear timecode table footnotes */
 void setLevel(void)
 {
@@ -70,54 +95,59 @@ void setLevel(void)
             0   0   1   0   <-- 4 = frame number *ones place* (value at corresponding bit #)
             1   2   4   8   <-- weight of the corresponding value
 
+    the process of reducing a frame, sec, or hour value to the bit we intend to
+    transmit at the next bit period:
+        given: frame count cycles bt 0 and FPS
+        remember: LSB on LEFT, right shift (>>) = shift toward LSB
 
-        how we get a binary # from a specific place in the frame count
-            given: frame count cycles bt 0 and FPS
-            remember: LSB on LEFT
+        (value % 10 >> place) & 1           <- ones place
+        (value / 10 % 10 >> place) & 1      <- tens place
+            value = frame, sec, or hour number
+            place = the place in the binary(value) needed for the current LTC bit
 
-            24 -> binary(4) = 0 0 1 0
+        frame 24 -> binary(4) = 0 0 1 0
 
-            BIT 0
-                24 % 10 = 4  ->
-                4 >> 0 = 4 ->
-                4 & 1  ->  0 0 1 0
-                        &  1 0 0 0
-                        ----------
-            BIT 0 = 0 ->   0 0 0 0
-            ---------
-            BIT 1
-                24 % 10 = 4  ->
-                4 >> 1 = 0 0 1 0 >> 1 = 0 1 0 0 = 2 ->
-                2 & 1 = 0 = BIT 1
-                        ---------
-            BIT 2
-                24 % 10 = 4 ->
-                4 >> 2 = 1 ->
-                1 & 1 = 1 = BIT 2
-                        ---------
-            BIT 3
-                24 % 10 = 4 ->
-                4 >> 3 = 0 ->
-                0 & 1 = 0 = BIT 3
-                        ---------
+        BIT 0
+            24 % 10 = 4 ->
+            4 >> 0 = 4 ->
+            4 & 1  ->  0 0 1 0
+                    &  1 0 0 0
+                    ----------
+        BIT 0 = 0 ->   0 0 0 0
+        ---------
+        BIT 1
+            24 % 10 = 4 ->
+            4 >> 1  =  0010 >> 1  =  0100 = 2 ->
+            2 & 1 = 0 = BIT 1
+                    ---------
+        BIT 2
+            24 % 10 = 4 ->
+            4 >> 2 = 1 ->
+            1 & 1 = 1 = BIT 2
+                    ---------
+        BIT 3
+            24 % 10 = 4 ->
+            4 >> 3 = 0 ->
+            0 & 1 = 0 = BIT 3
+                    ---------
 
-            Output as confirmed above: 0 0 1 0 (1 on bit 2, LSB left)
+        Output as confirmed above: 0 0 1 0 (bit 2 = 1, LSB left)
     */
     case 0:
         polarBit = 0;
-        currentBit = ((frameCount % 10) >> 0) & 1; // reduce the ones place to the value at *this bit position (bitCount)
+        outputBit = ((frameCount % 10) >> 0) & 1; // reduce the ones place to the bit value needed for *this bit position (bitCount)
         update_timer2_compareB_and_polarBit();
         break;
     case 1:
-        currentBit = ((frameCount % 10) >> 1) & 1; // ...*this bit position
+        outputBit = ((frameCount % 10) >> 1) & 1; // ...*this bit position
         update_timer2_compareB_and_polarBit();
         break;
     case 2:
-        currentBit = ((frameCount % 10) >> 2) & 1; // ...*this...
+        outputBit = ((frameCount % 10) >> 2) & 1; // ...*this...
         update_timer2_compareB_and_polarBit();
         break;
     case 3:
-        currentBit = ((frameCount % 10) >> 3) & 1; // ...*this...
+        outputBit = ((frameCount % 10) >> 3) & 1; // ...*this...
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,11 +163,11 @@ void setLevel(void)
             10  20  <-- weight  of the corresponding value
     */
     case 8:
-        currentBit = ((frameCount / 10 % 10) >> 0) & 1;
+        outputBit = ((frameCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 9:
-        currentBit = ((frameCount / 10 % 10) >> 1) & 1;
+        outputBit = ((frameCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -161,19 +191,19 @@ void setLevel(void)
             1   2   4   8   <-- weight of the corresponding value
     */
     case 16:
-        currentBit = (secondCount % 10 >> 0) & 1;
+        outputBit = (secondCount % 10 >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 17:
-        currentBit = (secondCount % 10 >> 1) & 1;
+        outputBit = (secondCount % 10 >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 18:
-        currentBit = (secondCount % 10 >> 2) & 1;
+        outputBit = (secondCount % 10 >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 19:
-        currentBit = (secondCount % 10 >> 3) & 1;
+        outputBit = (secondCount % 10 >> 3) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -189,15 +219,15 @@ void setLevel(void)
             10  20  40  <-- weight of the corresponding value
     */
     case 24:
-        currentBit = ((secondCount / 10 % 10) >> 0) & 1;
+        outputBit = ((secondCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 25:
-        currentBit = ((secondCount / 10 % 10) >> 1) & 1;
+        outputBit = ((secondCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 26:
-        currentBit = ((secondCount / 10 % 10) >> 2) & 1;
+        outputBit = ((secondCount / 10 % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -218,19 +248,19 @@ void setLevel(void)
             1   2   4   8   <-- weight of the corresponding value
     */
     case 32:
-        currentBit = ((minuteCount % 10) >> 0) & 1;
+        outputBit = ((minuteCount % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 33:
-        currentBit = ((minuteCount % 10) >> 1) & 1;
+        outputBit = ((minuteCount % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 34:
-        currentBit = ((minuteCount % 10) >> 2) & 1;
+        outputBit = ((minuteCount % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 35:
-        currentBit = ((minuteCount % 10) >> 3) & 1;
+        outputBit = ((minuteCount % 10) >> 3) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -246,15 +276,15 @@ void setLevel(void)
             10  20  40  <-- weight of the corresponding value
     */
     case 40:
-        currentBit = ((minuteCount / 10 % 10) >> 0) & 1;
+        outputBit = ((minuteCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 41:
-        currentBit = ((minuteCount / 10 % 10) >> 1) & 1;
+        outputBit = ((minuteCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 42:
-        currentBit = ((minuteCount / 10 % 10) >> 2) & 1;
+        outputBit = ((minuteCount / 10 % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -275,19 +305,19 @@ void setLevel(void)
             1   2   4   8   <-- weight of the corresponding value
     */
     case 48:
-        currentBit = ((hourCount % 10) >> 0) & 1;
+        outputBit = ((hourCount % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 49:
-        currentBit = ((hourCount % 10) >> 1) & 1;
+        outputBit = ((hourCount % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 50:
-        currentBit = ((hourCount % 10) >> 2) & 1;
+        outputBit = ((hourCount % 10) >> 2) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 51:
-        currentBit = ((hourCount % 10) >> 3) & 1;
+        outputBit = ((hourCount % 10) >> 3) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -303,11 +333,11 @@ void setLevel(void)
             10  20  <-- weight  of the corresponding value
     */
     case 56:
-        currentBit = ((hourCount / 10 % 10) >> 0) & 1;
+        outputBit = ((hourCount / 10 % 10) >> 0) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 57:
-        currentBit = ((hourCount / 10 % 10) >> 1) & 1;
+        outputBit = ((hourCount / 10 % 10) >> 1) & 1;
         update_timer2_compareB_and_polarBit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -318,8 +348,10 @@ void setLevel(void)
     /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     flag *see note* */
     case 59:
-        currentBit = (polarBit);
-        update_timer2_compareB_and_polarBit();
+        // TODO: why is polarBit used here?
+        // outputBit = polarBit;
+        // update_timer2_compareB_and_polarBit();
+        write_0_bit();
         break;
     /*  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     user bits field 8 (final) - 4 bits */
@@ -330,7 +362,7 @@ void setLevel(void)
     fixed pattern for sync - 16 bits (thru end of tc frame/schema)
         occurs at end of each frame of picture/timecode
         must be these 16 bits (assuming playback is forward, as usual):
-            0  0  [ (12) x 1 ]  0  1  (reflected in the remaining currentBit values)
+            0  0  [ (12) x 1 ]  0  1  (reflected in the remaining outputBit values)
             prefix and suffix bit pairs are used to get direction of playback
             works bc 12 consecutive 1s cannot appear anywhere else in the schema
     */
@@ -338,14 +370,14 @@ void setLevel(void)
         write_0_bit();
         break;
     case 66 ... 77: // 12x 1
-        currentBit = 1;
+        outputBit = 1;
         update_timer2_compareB_and_polarBit();
         break;
     case 78: // 0
         write_0_bit();
         break;
     case 79: // 1
-        currentBit = 1;
+        outputBit = 1;
         update_timer2_compareB_and_polarBit();
         break;
     default:
@@ -354,38 +386,39 @@ void setLevel(void)
     }
 }
 
-/* keeps track of and updates bit, frame, second, minute, & hour counts. */
+/* updates bit, frame, second, minute, & hour counts. */
 void timeUpdate(void)
 {
-    // ++ bit count and return, if not at end of a frame
+    /* all blocks below:
+        ++ xCount and return, if not at end of a frame, else reset xCount
+
+        check each unit from smallest to largest, returning if that unit can be
+        incremented */
+
     if (bitCount < 79) {
         bitCount++;
         return;
     }
     bitCount = 0;
 
-    // ++ frame count and return, if not at end of a second
     if (frameCount < 24) {
         frameCount++;
         return;
     }
     frameCount = 0;
 
-    // ++ second count and return, if not at end of a minute
     if (secondCount < 59) {
         secondCount++;
         return;
     }
     secondCount = 0;
 
-    // ++ minute count and return, if not at end of a frame
     if (minuteCount < 59) {
         minuteCount++;
         return;
     }
     minuteCount = 0;
 
-    // increment hour count and return, if not at end of a day (end of 24 hr cycle)
     if (hourCount < 23) {
         hourCount++;
         return;
@@ -394,7 +427,7 @@ void timeUpdate(void)
 }
 
 /* Interrupt Service Routine
-    triggered everytime timer1 compareA match value reaches  
+    triggered everytime timer1 compareA match value reaches
  */
 ISR(TIMER1_COMPA_vect)
 {
@@ -411,19 +444,23 @@ void update_timer2_compareB()
 {
     /* invert lastLevel when A or B is true:
         A) we're at the start of a bit period,
-        B) we're at the middle of a bit period & the LTC bit to be sent is a 1 */
-    if (!updateCnt || (updateCnt && currentBit))
+        B) we're mid-bit period & the LTC bit to be sent is a 1 */
+    if (!updateCnt || (updateCnt && outputBit))
         lastLevel = !lastLevel;
 
-    // if lastLevel, PWM outputs biphase/Manchester high, if 0, outputs low
+    // if lastLevel, PWM outputs biphase/Manchester high, else, outputs low
     OCR2B = lastLevel
         ? 100
         : 27;
 }
 
+/* inverts polarBit given current value of updateCnt & outputBit */
 void update_polarBit()
 {
-    if (updateCnt & !currentBit)
+    /* invert polarBit when both A and B are true
+        A) we are at the middle of a bit period
+        B) we intend to output a 0 for this LTC bit period */
+    if (updateCnt & !outputBit)
         polarBit = !polarBit;
 }
 
@@ -431,7 +468,7 @@ void update_polarBit()
 TODO: is all of this really related to writing a zero bit? */
 void write_0_bit()
 {
-    currentBit = 0;
+    outputBit = 0;
     update_timer2_compareB();
     update_polarBit();
 }
@@ -444,10 +481,12 @@ void update_timer2_compareB_and_polarBit()
 }
 
 /* utility + debugging function - UNTESTED
-returns a value for OCR1A from a frame rate. OCR1A is the data that determines
-the duty cycle of the PWM output. OCR refers to Output Compare Register. It's
-the value that, when matched by its corresponding counter value, triggers an
-interrupt.
+returns a value for OCR1A from a frame rate. OCR1A is the value that, when
+matched by timer/counter1, triggers the main interrupt, and thus ISR().
+
+OCR refers to Output Compare Register.
+
+FPS constants are #defined as integers 0 - 4.
  */
 unsigned short timer1_compareA_from(unsigned char frame_rate_id)
 {
@@ -456,19 +495,19 @@ unsigned short timer1_compareA_from(unsigned char frame_rate_id)
 
     unsigned short frame_dur_us; // frame duration in microsec, avoids floats
     switch (frame_rate_id) {
-    case 0: // 23.976
+    case FPS_23: // 23.976
         frame_dur_us = 41708;
         break;
-    case 1: // 24
+    case FPS_24:
         frame_dur_us = 41667;
         break;
-    case 2: // 25
+    case FPS_25:
         frame_dur_us = 40000;
         break;
-    case 3: // 29.97
+    case FPS_29: // 29.97
         frame_dur_us = 33367;
         break;
-    case 4: // 30
+    case FPS_30:
         frame_dur_us = 33333;
         break;
     default:
