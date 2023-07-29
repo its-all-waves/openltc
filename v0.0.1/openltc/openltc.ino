@@ -1,13 +1,12 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-// #define DEBUG_OCR1A_TIME_FACTOR 4000 // 25 fps
 #define FPS_2398 0
 #define FPS_24   1
 #define FPS_25   2
 #define FPS_2997 3
 #define FPS_30   4
-#define FRAME_RATE FPS_2398
+#define FRAME_RATE FPS_2398 // set the frame rate
 
 // The time values outputted as LTC
 volatile unsigned char hourCount = 0;
